@@ -28,6 +28,14 @@
 
 // ================================================================================================================================
 
+/**
+ *    Function to read a file in chunks of a specified size.
+ *    It reads the file, converts the read string to an unsigned long long integer
+ * 
+ *    To move a file pointer to the end of the file, use `fseek(file, 0, SEEK_END)`.
+ *    To get the current position of the file pointer, use `ftell(file)`.
+ *    To reset the file pointer to the beginning of the file, use `rewind(file)`.
+ */
 unsigned long long ffread(FILE *file, int buffersize){
     bool exit_loop = false;
     if (file != NULL) {
@@ -82,6 +90,12 @@ unsigned long long ffread(FILE *file, int buffersize){
     exit(1);
 }
 
+
+
+
+/**
+ * 
+ */
 void read_text(FILE *pre_read, FILE *post_read){
 
     if (fseek(pre_read, 0, SEEK_END) != 0) {
@@ -264,6 +278,15 @@ void addition (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
 
 
 
+
+    /**
+     *   Get file descriptor
+     *
+     *   What is file descriptor?
+     *   A file descriptor is a small integer value that the operating system uses 
+     *   to identify and manage an open file. It is like an ID for an opened file,
+     *   not the file's name.
+     */
     int fd1 = fileno(InputFile_1);
     int fd2 = fileno(InputFile_2);
 
@@ -277,15 +300,18 @@ void addition (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
         fclose(InputFile_2);
         return;
     }
+
+
+
     
     while (InputFile_1 != NULL && InputFile_2 != NULL) {
         if (InputFile_1 != NULL) {
-            if (filesize1 < 18) {
-                rewind(InputFile_1);
+            if (filesize1 < 18) {   // <-- If the file size is less than 18, read the whole file
+                rewind(InputFile_1); // Reset the file pointer to the beginning
                 Num1 = ffread(InputFile_1, filesize1);
                 filesize1 = 0;
                 last_num1 = true;
-            } else {
+            } else {                // <-- If the file size is greater than or equal to 18, read the last 18 bytes
                 filesize1 -= 18;
                 if (fseek(InputFile_1, -18L, SEEK_END) != 0) {
                     Log("Error seeking cur");
@@ -293,7 +319,7 @@ void addition (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
                     return;
                 }
 
-                /*
+                /* <-- This is not needed, because we already seek to the end of the file
                 if (fseek(InputFile_1, filesize1, SEEK_SET) != 0) {
                     Log("Error seeking cur");
                     fclose(InputFile_1);
@@ -302,7 +328,7 @@ void addition (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
                 */
                 Num1 = ffread(InputFile_1, 18);
             }
-            //printf("Num 1 : %llu\n", Num1);
+            //printf("Num 1 : %llu\n", Num1); // <-- Debug
 
             #ifdef _WIN32
                 if (_chsize_s(fd1, filesize1) != 0) {
@@ -369,20 +395,24 @@ void addition (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
             fclose(InputFile_2);
             InputFile_2 = NULL;
         }
-        
+
+
+
+
+        // +++++++++++++++++++++++++ // บวกตัวเลขทั้งสอง + carry
         sum_of_char = Num1 + Num2 + carry;
         carry = 0;
-        //printf("sum of char: %llu\n\n", sum_of_char);
+        //printf("sum of char: %llu\n\n", sum_of_char); // <-- Debug
         
-        //maximum use with ull
+        // +++++++++++++++++++++++++ // ถ้า sum_of_char มากกว่าหรือเท่ากับ 1000000000000000000 ให้ลบ 1000000000000000000 และเพิ่ม carry เป็น 1
         unsigned long long max_sum = 1000000000000000000;
         if (sum_of_char >= max_sum) {
             sum_of_char -= max_sum;
             carry = 1;
         }
-
-        //printf("sum of char without carry: %llu\n", sum_of_char);
+        //printf("sum of char without carry: %llu\n", sum_of_char); // <-- Debug
         
+        // +++++++++++++++++++++++++ // ถ้า carry เป็น 1 ให้เพิ่ม 1 ให้ sum_of_char
         if (last_num1 == false && last_num2 == false){
             //linear search
             unsigned long long digit = 0;
@@ -403,6 +433,7 @@ void addition (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
             }
         }
 
+        // +++++++++++++++++++++++++ // เขียนผลลัพธ์ลงไฟล์
         fprintf(OutputFile, "%llu", sum_of_char);
         sum_of_char = 0;
         Num1 = 0;
