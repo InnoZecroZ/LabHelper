@@ -8,19 +8,19 @@ project(${PROJECT_NAME})
 
 
 # Add header files
-file(GLOB_RECURSE HEADER_FILES src/*.h)
+file(GLOB_RECURSE PR_HEADER_FILES src/*.h)
 
 # Add source files
-file(GLOB_RECURSE SOURCE_FILES src/*.cpp)
+file(GLOB_RECURSE PR_SOURCE_FILES src/*.cpp)
 
-message(STATUS "HEADER_FILES: ${HEADER_FILES}")
+message(STATUS "HEADER_FILES: ${PR_HEADER_FILES}")
 
-message(STATUS "SOURCE_FILES: ${SOURCE_FILES}")
+message(STATUS "SOURCE_FILES: ${PR_SOURCE_FILES}")
 
 add_executable(
     ${PROJECT_NAME}
-    ${HEADER_FILES}
-    ${SOURCE_FILES}
+    ${PR_HEADER_FILES}
+    ${PR_SOURCE_FILES}
 )
 
 include_directories(
