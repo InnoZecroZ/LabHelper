@@ -30,8 +30,7 @@
 
 unsigned long long ffread(FILE *file, int buffersize){
     bool exit_loop = false;
-    if (file != NULL)
-    {
+    if (file != NULL) {
 #ifdef _MSC_VER
         char* raw = (char*)malloc(buffersize * sizeof(char));
         char* str = (char*)malloc((buffersize + 1) * sizeof(char));
@@ -62,8 +61,7 @@ unsigned long long ffread(FILE *file, int buffersize){
             } else if (errno == ERANGE) {
                 fprintf(stderr, "Overflow converting \"%s\"\n", str);
             } else if (*end != '\0') {
-                fprintf(stderr,
-                        "Warning: trailing chars after number: \"%s\"\n", end);
+                fprintf(stderr, "Warning: trailing chars after number: \"%s\"\n", end);
             }
 
 #ifdef _MSC_VER
@@ -115,8 +113,7 @@ void read_text(FILE *pre_read, FILE *post_read){
     printf("Temp: %d\n", temp);
     */  
 
-    if ((count - 1) % 18 != 0)
-    {
+    if ((count - 1) % 18 != 0) {
         //printf("\nOffset: %d\n", offset);
 
         if (fseek(pre_read, offset, SEEK_END) != 0) {
@@ -183,8 +180,7 @@ void read_text(FILE *pre_read, FILE *post_read){
 
         filesize -= 18;
         //printf("filesize : %llu\n", filesize);
-        if (fseek(pre_read, filesize, SEEK_SET) != 0)
-        {
+        if (fseek(pre_read, filesize, SEEK_SET) != 0) {
             Log("Error seeking");
             fclose(pre_read);
 #ifdef _MSC_VER
@@ -222,7 +218,7 @@ void read_text(FILE *pre_read, FILE *post_read){
 // ================================================================================================================================
 
 
-void addition (FILE *file1, FILE *file2, FILE *file3){
+void addition (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
     unsigned long long sum_of_char;     // ผลรวม Sum
     unsigned int carry = 0;             // The ทด
     unsigned long long Num1;            // Number from 1.txt
@@ -235,30 +231,30 @@ void addition (FILE *file1, FILE *file2, FILE *file3){
     */
 
     // Move the cursor to end of files
-    if (fseek(file1, 0, SEEK_END) != 0) {
+    if (fseek(InputFile_1, 0, SEEK_END) != 0) {
         Log("Error seeking");
-        fclose(file1);
+        fclose(InputFile_1);
         return;
     }
-    if (fseek(file2, 0, SEEK_END) != 0) {
+    if (fseek(InputFile_2, 0, SEEK_END) != 0) {
         Log("Error seeking");
-        fclose(file2);
+        fclose(InputFile_2);
         return;
     }
     
     // Tell the cursor position
-    unsigned long long filesize1 = ftell(file1);
-    unsigned long long filesize2 = ftell(file2);
+    unsigned long long filesize1 = ftell(InputFile_1);
+    unsigned long long filesize2 = ftell(InputFile_2);
         
     // Check empty
     if (filesize1 <= 0) {
         printf("File empty or error\n");
-        fclose(file1);
+        fclose(InputFile_1);
         return;
     }
     if (filesize2 <= 0) {
         printf("File empty or error\n");
-        fclose(file2);
+        fclose(InputFile_2);
         return;
     }
 
@@ -268,119 +264,110 @@ void addition (FILE *file1, FILE *file2, FILE *file3){
 
 
 
-    int fd1 = fileno(file1);
-    int fd2 = fileno(file2);
+    int fd1 = fileno(InputFile_1);
+    int fd2 = fileno(InputFile_2);
 
     if (fd1 == -1) {
         Log("Error getting file descriptor");
-        fclose(file1);
+        fclose(InputFile_1);
         return;
     }
     if (fd2 == -1) {
         Log("Error getting file descriptor");
-        fclose(file2);
+        fclose(InputFile_2);
         return;
     }
     
-    while (file1 != NULL && file2 != NULL)
-    {
-        if (file1 != NULL)
-        {
-            if (filesize1 < 18)
-            {
-                rewind(file1);
-                Num1 = ffread(file1, filesize1);
+    while (InputFile_1 != NULL && InputFile_2 != NULL) {
+        if (InputFile_1 != NULL) {
+            if (filesize1 < 18) {
+                rewind(InputFile_1);
+                Num1 = ffread(InputFile_1, filesize1);
                 filesize1 = 0;
                 last_num1 = true;
-            }
-            else {
+            } else {
                 filesize1 -= 18;
-                if (fseek(file1, -18L, SEEK_END) != 0) {
+                if (fseek(InputFile_1, -18L, SEEK_END) != 0) {
                     Log("Error seeking cur");
-                    fclose(file1);
+                    fclose(InputFile_1);
                     return;
                 }
 
                 /*
-                if (fseek(file1, filesize1, SEEK_SET) != 0) {
+                if (fseek(InputFile_1, filesize1, SEEK_SET) != 0) {
                     Log("Error seeking cur");
-                    fclose(file1);
+                    fclose(InputFile_1);
                     return;
                 }
                 */
-                Num1 = ffread(file1, 18);
+                Num1 = ffread(InputFile_1, 18);
             }
             //printf("Num 1 : %llu\n", Num1);
 
             #ifdef _WIN32
                 if (_chsize_s(fd1, filesize1) != 0) {
                     Log("Error truncating file");
-                    fclose(file1);
+                    fclose(InputFile_1);
                     return;
                 }
             #else
                 if (ftruncate(fd1, filesize1) != 0) {
                     Log("Error truncating file");
-                    fclose(file1);
+                    fclose(InputFile_1);
                     return;
                 }
             #endif
                 //printf("File truncated successfully.(1)\n\n");
         }
 
-        if (file2 != NULL)
-        {
-            if (filesize2 < 18)
-            {
-                rewind(file2);
-                Num2 = ffread(file2, filesize2);
+        if (InputFile_2 != NULL) {
+            if (filesize2 < 18) {
+                rewind(InputFile_2);
+                Num2 = ffread(InputFile_2, filesize2);
                 filesize2 = 0;
                 last_num2 = true;
-            }
-            else {
+            } else {
                 filesize2 -= 18;
-                if (fseek(file2, -18L, SEEK_END) != 0) {
+                if (fseek(InputFile_2, -18L, SEEK_END) != 0) {
                     Log("Error seeking cur");
-                    fclose(file2);
+                    fclose(InputFile_2);
                     return;
                 }
 
                 /*
-                if (fseek(file2, filesize2, SEEK_SET) != 0) {
+                if (fseek(InputFile_2, filesize2, SEEK_SET) != 0) {
                     Log("Error seeking cur");
-                    fclose(file2);
+                    fclose(InputFile_2);
                     return;
                 }
                 */
-                Num2 = ffread(file2, 18);
+                Num2 = ffread(InputFile_2, 18);
             }
             //printf("Num 2 : %llu\n", Num2);
 
             #ifdef _WIN32
                 if (_chsize_s(fd2, filesize2) != 0) {
                     Log("Error truncating file");
-                    fclose(file2);
+                    fclose(InputFile_2);
                     return;
                 }
             #else
                 if (ftruncate(fd2, filesize2) != 0) {
                     Log("Error truncating file");
-                    fclose(file2);
+                    fclose(InputFile_2);
                     return;
                 }
             #endif
                 //printf("File truncated successfully.(1)\n\n");
         }
 
-        if (filesize1 == 0)
-        {
-            fclose(file1);
-            file1 = NULL;
+        if (filesize1 == 0) {
+            fclose(InputFile_1);
+            InputFile_1 = NULL;
         }
-        if (filesize2 == 0)
-        {
-            fclose(file2);
-            file2 = NULL;
+        if (filesize2 == 0) {
+            fclose(InputFile_2);
+            InputFile_2 = NULL;
         }
         
         sum_of_char = Num1 + Num2 + carry;
@@ -389,8 +376,7 @@ void addition (FILE *file1, FILE *file2, FILE *file3){
         
         //maximum use with ull
         unsigned long long max_sum = 1000000000000000000;
-        if (sum_of_char >= max_sum)
-        {
+        if (sum_of_char >= max_sum) {
             sum_of_char -= max_sum;
             carry = 1;
         }
@@ -402,11 +388,9 @@ void addition (FILE *file1, FILE *file2, FILE *file3){
             unsigned long long digit = 0;
             for (unsigned long long i = 1; i <= 1000000000000000000ULL; digit++)
             {
-                if (sum_of_char >= i)
-                {
+                if (sum_of_char >= i) {
                     i *= 10;
-                }
-                else {
+                } else {
                     break;
                 }
             }
@@ -415,11 +399,11 @@ void addition (FILE *file1, FILE *file2, FILE *file3){
             for (size_t i = 18; i > digit; i--)
             {
                 //add 0
-                fprintf(file3, "0");
+                fprintf(OutputFile, "0");
             }
         }
 
-        fprintf(file3, "%llu", sum_of_char);
+        fprintf(OutputFile, "%llu", sum_of_char);
         sum_of_char = 0;
         Num1 = 0;
         Num2 = 0;
