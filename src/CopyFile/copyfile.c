@@ -1,4 +1,4 @@
-#include "copycat.h"
+#include "copyfile.h"
 
 void CopyFile(const char* input_filename, const char* output_filename) {
     // Open input file

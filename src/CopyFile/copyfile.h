@@ -1,6 +1,9 @@
-#ifndef COPYCAT_H
-#define COPYCAT_H
+#ifndef COPYFILE_H
+#define COPYFILE_H
+
+    #include <stdio.h>
+
 
     void CopyFile(const char* input_filename, const char* output_filename);
 
-#endif // COPYCAT_H
+#endif // COPYFILE_H
