@@ -442,6 +442,25 @@ void addition (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
 }
 
 
+void Subtract (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
+    /**
+     * TODO: Make a function to subtract two numbers from two files.
+     */
+}
+
+void Multiply (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
+    /**
+     * TODO: Make a function to multiply two numbers from two files.
+     */
+}
+
+void Divide (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
+    /**
+     * TODO: Make a function to divide two numbers from two files.
+     */
+}
+
+
 /*
 ================================================================================================================================
 */
