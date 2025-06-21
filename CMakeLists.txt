@@ -13,6 +13,10 @@ file(GLOB_RECURSE HEADER_FILES src/*.h)
 # Add source files
 file(GLOB_RECURSE SOURCE_FILES src/*.cpp)
 
+message(STATUS "HEADER_FILES: ${HEADER_FILES}")
+
+message(STATUS "SOURCE_FILES: ${SOURCE_FILES}")
+
 add_executable(
     ${PROJECT_NAME}
     ${HEADER_FILES}
