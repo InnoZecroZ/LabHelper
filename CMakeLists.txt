@@ -13,9 +13,9 @@ file(GLOB_RECURSE PR_HEADER_FILES src/*.h)
 # Add source files
 file(GLOB_RECURSE PR_SOURCE_FILES src/*.cpp)
 
-message(STATUS "HEADER_FILES: ${PR_HEADER_FILES}")
+message(STATUS "PR_HEADER_FILES: ${PR_HEADER_FILES}")
 
-message(STATUS "SOURCE_FILES: ${PR_SOURCE_FILES}")
+message(STATUS "PR_SOURCE_FILES: ${PR_SOURCE_FILES}")
 
 add_executable(
     ${PROJECT_NAME}
