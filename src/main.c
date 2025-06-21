@@ -67,7 +67,7 @@ unsigned long long ffread(FILE *file, int buffersize){
 void read_text(FILE *pre_read, FILE *post_read){
 
     if (fseek(pre_read, 0, SEEK_END) != 0) {
-        Logging("Error seeking");
+        Log("Error seeking");
         fclose(pre_read);
         return;
     }
@@ -100,7 +100,7 @@ void read_text(FILE *pre_read, FILE *post_read){
         //printf("\nOffset: %d\n", offset);
 
         if (fseek(pre_read, offset, SEEK_END) != 0) {
-            Logging("Error seeking");
+            Log("Error seeking");
             fclose(pre_read);
             return;
         }
@@ -139,7 +139,7 @@ void read_text(FILE *pre_read, FILE *post_read){
         //printf("filesize : %llu\n", filesize);
         if (fseek(pre_read, filesize, SEEK_SET) != 0)
         {
-            Logging("Error seeking");
+            Log("Error seeking");
             fclose(pre_read);
             return;
         }
@@ -182,12 +182,12 @@ void addition (FILE *file1, FILE *file2, FILE *file3){
 
     // Move the cursor to end of files
     if (fseek(file1, 0, SEEK_END) != 0) {
-        Logging("Error seeking");
+        Log("Error seeking");
         fclose(file1);
         return;
     }
     if (fseek(file2, 0, SEEK_END) != 0) {
-        Logging("Error seeking");
+        Log("Error seeking");
         fclose(file2);
         return;
     }
@@ -218,12 +218,12 @@ void addition (FILE *file1, FILE *file2, FILE *file3){
     int fd2 = fileno(file2);
 
     if (fd1 == -1) {
-        Logging("Error getting file descriptor");
+        Log("Error getting file descriptor");
         fclose(file1);
         return;
     }
     if (fd2 == -1) {
-        Logging("Error getting file descriptor");
+        Log("Error getting file descriptor");
         fclose(file2);
         return;
     }
@@ -242,14 +242,14 @@ void addition (FILE *file1, FILE *file2, FILE *file3){
             else {
                 filesize1 -= 18;
                 if (fseek(file1, -18L, SEEK_END) != 0) {
-                    Logging("Error seeking cur");
+                    Log("Error seeking cur");
                     fclose(file1);
                     return;
                 }
 
                 /*
                 if (fseek(file1, filesize1, SEEK_SET) != 0) {
-                    Logging("Error seeking cur");
+                    Log("Error seeking cur");
                     fclose(file1);
                     return;
                 }
@@ -260,13 +260,13 @@ void addition (FILE *file1, FILE *file2, FILE *file3){
 
             #ifdef _WIN32
                 if (_chsize_s(fd1, filesize1) != 0) {
-                    Logging("Error truncating file");
+                    Log("Error truncating file");
                     fclose(file1);
                     return;
                 }
             #else
                 if (ftruncate(fd1, filesize1) != 0) {
-                    Logging("Error truncating file");
+                    Log("Error truncating file");
                     fclose(file1);
                     return;
                 }
@@ -286,14 +286,14 @@ void addition (FILE *file1, FILE *file2, FILE *file3){
             else {
                 filesize2 -= 18;
                 if (fseek(file2, -18L, SEEK_END) != 0) {
-                    Logging("Error seeking cur");
+                    Log("Error seeking cur");
                     fclose(file2);
                     return;
                 }
 
                 /*
                 if (fseek(file2, filesize2, SEEK_SET) != 0) {
-                    Logging("Error seeking cur");
+                    Log("Error seeking cur");
                     fclose(file2);
                     return;
                 }
@@ -304,13 +304,13 @@ void addition (FILE *file1, FILE *file2, FILE *file3){
 
             #ifdef _WIN32
                 if (_chsize_s(fd2, filesize2) != 0) {
-                    Logging("Error truncating file");
+                    Log("Error truncating file");
                     fclose(file2);
                     return;
                 }
             #else
                 if (ftruncate(fd2, filesize2) != 0) {
-                    Logging("Error truncating file");
+                    Log("Error truncating file");
                     fclose(file2);
                     return;
                 }
@@ -412,25 +412,25 @@ int main() {
     FILE *file2 = fopen("2.txt", "r+");
 
     if (!file1) {
-        Logging("Error opening file");
+        Log("Error opening file");
         return 1;
     }
     if (!file2) {
-        Logging("Error opening file");
+        Log("Error opening file");
         return 1;
     }
 
     FILE *file3 = fopen("unread-answer.txt", "w+");
 
     if (!file3) {
-        Logging("Error opening file");
+        Log("Error opening file");
         return 1;
     }
 
     FILE *answer = fopen("answer.txt", "w");
 
     if (!answer) {
-        Logging("Error opening file");
+        Log("Error opening file");
         return 1;
     }
 

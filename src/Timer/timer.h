@@ -3,4 +3,6 @@
 
     #include <time.h>
 
+    unsigned long mills(void);
+
 #endif // TIMER_H
