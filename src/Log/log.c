@@ -3,6 +3,7 @@
     #include <windows.h>
 #else
     #include <sys/time.h>
+    #include <time.h>
 #endif
 
 void Log
@@ -37,13 +38,13 @@ void Log
      * Format the log message based on the type
      * This allows for easy identification of the log type
      */
-    if(type == LOG_TYPE_INFO) {
+    if(type && strcmp(type, LOG_TYPE_INFO) == 0) {
         snprintf(LogMSG, sizeof(LogMSG), "[%s.%03d] [INFO] %s: %s", DateTime, millisec, title, message);
-    } else if(type == LOG_TYPE_WARNING) {
+    } else if(type && strcmp(type, LOG_TYPE_WARNING) == 0) {
         snprintf(LogMSG, sizeof(LogMSG), "[%s.%03d] [WARNING] %s: %s", DateTime, millisec, title, message);
-    } else if(type == LOG_TYPE_ERROR) {
+    } else if(type && strcmp(type, LOG_TYPE_ERROR) == 0) {
         snprintf(LogMSG, sizeof(LogMSG), "[%s.%03d] [ERROR] %s: %s", DateTime, millisec, title, message);
-    } else if(type == LOG_TYPE_DEBUG) {
+    } else if(type && strcmp(type, LOG_TYPE_DEBUG) == 0) {
         snprintf(LogMSG, sizeof(LogMSG), "[%s.%03d] [DEBUG] %s: %s", DateTime, millisec, title, message);
     } else {
         snprintf(LogMSG, sizeof(LogMSG), "[%s.%03d] [UNKNOWN] %s: %s", DateTime, millisec, title, message);
@@ -59,17 +60,10 @@ void Log
     fprintf(log_file, "%s\n", LogMSG);
     fclose(log_file);
 
-
-
-    
     /*
         Print to console
         This is useful for debugging and monitoring
         the program's execution in real-time.
     */
     printf("%s\n", LogMSG); // Also print to console
-
-
-
-
 }
