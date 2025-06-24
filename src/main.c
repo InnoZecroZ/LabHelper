@@ -445,7 +445,7 @@ void Divide (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
 /*
     Function main
 */
-int main() {
+int main(int argc, char *argv[]) {
 
     if (DEBUG_MODE) {
         /*
