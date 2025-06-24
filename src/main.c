@@ -41,19 +41,8 @@
 unsigned long long ffread(FILE *file, int buffersize){
     bool exit_loop = false;
     if (file != NULL) {
-#ifdef _MSC_VER
-        char* raw = (char*)malloc(buffersize * sizeof(char));
-        char* str = (char*)malloc((buffersize + 1) * sizeof(char));
-        if (!raw || !str) {
-            fprintf(stderr, "Memory allocation failed\n");
-            if (raw) free(raw);
-            if (str) free(str);
-            exit(1);
-        }
-#else
         char raw[buffersize];
         char str[buffersize + 1];
-#endif
         size_t bytesRead;
 
         while ((bytesRead = fread(raw, 1, buffersize, file)) > 0) {
@@ -74,18 +63,10 @@ unsigned long long ffread(FILE *file, int buffersize){
                 fprintf(stderr, "Warning: trailing chars after number: \"%s\"\n", end);
             }
 
-#ifdef _MSC_VER
-            free(raw);
-            free(str);
-#endif
             //printf("Read: \"%s\" (%zu btyes)\n", str, bytesRead);
             return result;
         }
 
-#ifdef _MSC_VER
-        free(raw);
-        free(str);
-#endif
         fprintf(stderr, "Failed to Read.\n");
         exit(1);
     }
@@ -147,20 +128,8 @@ void read_text(FILE *pre_read, FILE *post_read){
         }
 
         const int buffersize = -offset;
-#ifdef _MSC_VER
-        char* raw = (char*)malloc(buffersize * sizeof(char));
-        char* str = (char*)malloc((buffersize + 1) * sizeof(char));
-        if (!raw || !str) {
-            fprintf(stderr, "Memory allocation failed\n");
-            if (raw) free(raw);
-            if (str) free(str);
-            fclose(pre_read);
-            return;
-        }
-#else
         char raw[buffersize];
         char str[buffersize + 1];
-#endif
         size_t bytesRead;
 
         while ((bytesRead = fread(raw, 1, buffersize, pre_read)) > 0) {
@@ -172,10 +141,6 @@ void read_text(FILE *pre_read, FILE *post_read){
             //printf("Chunk read: \"%s\"\n", str);
             fprintf(post_read, "%s", str);
         }
-#ifdef _MSC_VER
-        free(raw);
-        free(str);
-#endif
     }
     rewind(pre_read);
 
@@ -184,20 +149,8 @@ void read_text(FILE *pre_read, FILE *post_read){
     //printf("filesize after offset : %llu\n", filesize);
 
     const int buffersize = MAX_DIGIT;
-#ifdef _MSC_VER
-    char* raw = (char*)malloc(buffersize * sizeof(char));
-    char* str = (char*)malloc((buffersize + 1) * sizeof(char));
-    if (!raw || !str) {
-        fprintf(stderr, "Memory allocation failed\n");
-        if (raw) free(raw);
-        if (str) free(str);
-        fclose(pre_read);
-        return;
-    }
-#else
     char raw[buffersize];
     char str[buffersize + 1];
-#endif
     size_t bytesRead;
 
     while (filesize > 0) {
@@ -211,10 +164,6 @@ void read_text(FILE *pre_read, FILE *post_read){
                 "Error seeking to position in file"
             );
             fclose(pre_read);
-#ifdef _MSC_VER
-            free(raw);
-            free(str);
-#endif
             return;
         }
 
@@ -228,10 +177,6 @@ void read_text(FILE *pre_read, FILE *post_read){
         //printf("Chunk read: \"%s\"\n", str);
         fprintf(post_read, "%s", str);
     }
-#ifdef _MSC_VER
-    free(raw);
-    free(str);
-#endif
     
     fclose(pre_read);
     pre_read = NULL;
