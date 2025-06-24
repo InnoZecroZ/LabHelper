@@ -99,7 +99,11 @@ unsigned long long ffread(FILE *file, int buffersize){
 void read_text(FILE *pre_read, FILE *post_read){
 
     if (fseek(pre_read, 0, SEEK_END) != 0) {
-        Log("Error seeking");
+        Log(
+            LOG_TYPE_ERROR,
+            "File Read Error",
+            "Error seeking to end of file"
+        );
         fclose(pre_read);
         return;
     }
@@ -131,7 +135,11 @@ void read_text(FILE *pre_read, FILE *post_read){
         //printf("\nOffset: %d\n", offset);
 
         if (fseek(pre_read, offset, SEEK_END) != 0) {
-            Log("Error seeking");
+            Log(
+                LOG_TYPE_ERROR,
+                "File Read Error",
+                "Error seeking to offset in file"
+            );
             fclose(pre_read);
             return;
         }
@@ -195,7 +203,11 @@ void read_text(FILE *pre_read, FILE *post_read){
         filesize -= 18;
         //printf("filesize : %llu\n", filesize);
         if (fseek(pre_read, filesize, SEEK_SET) != 0) {
-            Log("Error seeking");
+            Log(
+                LOG_TYPE_ERROR,
+                "File Read Error",
+                "Error seeking to position in file"
+            );
             fclose(pre_read);
 #ifdef _MSC_VER
             free(raw);
@@ -246,12 +258,12 @@ void addition (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
 
     // Move the cursor to end of files
     if (fseek(InputFile_1, 0, SEEK_END) != 0) {
-        Log("Error seeking");
+        Log(LOG_TYPE_ERROR, "File Seek", "Error seeking InputFile_1 to end");
         fclose(InputFile_1);
         return;
     }
     if (fseek(InputFile_2, 0, SEEK_END) != 0) {
-        Log("Error seeking");
+        Log(LOG_TYPE_ERROR, "File Seek", "Error seeking InputFile_2 to end");
         fclose(InputFile_2);
         return;
     }
@@ -263,11 +275,13 @@ void addition (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
     // Check empty
     if (filesize1 <= 0) {
         printf("File empty or error\n");
+        Log(LOG_TYPE_ERROR, "File Size", "InputFile_1 is empty or error");
         fclose(InputFile_1);
         return;
     }
     if (filesize2 <= 0) {
         printf("File empty or error\n");
+        Log(LOG_TYPE_ERROR, "File Size", "InputFile_2 is empty or error");
         fclose(InputFile_2);
         return;
     }
@@ -293,12 +307,12 @@ void addition (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
     int fd2 = fileno(InputFile_2);
 
     if (fd1 == -1) {
-        Log("Error getting file descriptor");
+        Log(LOG_TYPE_ERROR, "File Descriptor", "Error getting file descriptor for InputFile_1");
         fclose(InputFile_1);
         return;
     }
     if (fd2 == -1) {
-        Log("Error getting file descriptor");
+        Log(LOG_TYPE_ERROR, "File Descriptor", "Error getting file descriptor for InputFile_2");
         fclose(InputFile_2);
         return;
     }
@@ -316,7 +330,7 @@ void addition (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
             } else {                // <-- If the file size is greater than or equal to 18, read the last 18 bytes
                 filesize1 -= 18;
                 if (fseek(InputFile_1, -18L, SEEK_END) != 0) {
-                    Log("Error seeking cur");
+                    Log(LOG_TYPE_ERROR, "File Seek", "Error seeking InputFile_1 to last 18 bytes");
                     fclose(InputFile_1);
                     return;
                 }
@@ -334,13 +348,13 @@ void addition (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
 
             #ifdef _WIN32
                 if (_chsize_s(fd1, filesize1) != 0) {
-                    Log("Error truncating file");
+                    Log(LOG_TYPE_ERROR, "File Truncate", "Error truncating InputFile_1");
                     fclose(InputFile_1);
                     return;
                 }
             #else
                 if (ftruncate(fd1, filesize1) != 0) {
-                    Log("Error truncating file");
+                    Log(LOG_TYPE_ERROR, "File Truncate", "Error truncating InputFile_1");
                     fclose(InputFile_1);
                     return;
                 }
@@ -357,7 +371,7 @@ void addition (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
             } else {
                 filesize2 -= 18;
                 if (fseek(InputFile_2, -18L, SEEK_END) != 0) {
-                    Log("Error seeking cur");
+                    Log(LOG_TYPE_ERROR, "File Seek", "Error seeking InputFile_2 to last 18 bytes");
                     fclose(InputFile_2);
                     return;
                 }
@@ -375,13 +389,13 @@ void addition (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
 
             #ifdef _WIN32
                 if (_chsize_s(fd2, filesize2) != 0) {
-                    Log("Error truncating file");
+                    Log(LOG_TYPE_ERROR, "File Truncate", "Error truncating InputFile_2");
                     fclose(InputFile_2);
                     return;
                 }
             #else
                 if (ftruncate(fd2, filesize2) != 0) {
-                    Log("Error truncating file");
+                    Log(LOG_TYPE_ERROR, "File Truncate", "Error truncating InputFile_2");
                     fclose(InputFile_2);
                     return;
                 }
@@ -505,25 +519,25 @@ int main() {
     FILE *file2 = fopen("2.txt", "r+");
 
     if (!file1) {
-        Log("Error opening file");
+        Log(LOG_TYPE_ERROR, "File Open", "Error opening 1.txt");
         return 1;
     }
     if (!file2) {
-        Log("Error opening file");
+        Log(LOG_TYPE_ERROR, "File Open", "Error opening 2.txt");
         return 1;
     }
 
     FILE *file3 = fopen("unread-answer.txt", "w+");
 
     if (!file3) {
-        Log("Error opening file");
+        Log(LOG_TYPE_ERROR, "File Open", "Error opening unread-answer.txt");
         return 1;
     }
 
     FILE *answer = fopen("answer.txt", "w");
 
     if (!answer) {
-        Log("Error opening file");
+        Log(LOG_TYPE_ERROR, "File Open", "Error opening answer.txt");
         return 1;
     }
 
