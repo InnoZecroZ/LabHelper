@@ -11,16 +11,17 @@
 #include "Timer/timer.h"
 #include "CopyFile/copyfile.h"
 
-/*
-    Some Library are not available on all platforms.
-*/
 #ifdef _WIN32
     #include <io.h>
 #else
     #include <unistd.h>
 #endif
 
-//define the max digit per read/calculation
+
+
+// ================================================================================================================================
+
+// define the max digit per read/calculation
 #define MAX_DIGIT 18
 
 // ================================================================================================================================
@@ -29,6 +30,8 @@
 #define DEBUG_MODE false
 
 // ================================================================================================================================
+
+
 
 /**
  *    Function to read a file in chunks of a specified size.
@@ -87,6 +90,7 @@ void read_text(FILE *pre_read, FILE *post_read){
             "File Read Error",
             "Error seeking to end of file"
         );
+
         fclose(pre_read);
         return;
     }
@@ -94,7 +98,12 @@ void read_text(FILE *pre_read, FILE *post_read){
     unsigned long long filesize = ftell(pre_read);
 
     if (filesize <= 0) {
-        printf("File empty or error\n");
+        Log(
+            LOG_TYPE_ERROR,
+            "File Read Error",
+            "File is empty or error"
+        );
+
         fclose(pre_read);
         return;
     }
@@ -123,6 +132,7 @@ void read_text(FILE *pre_read, FILE *post_read){
                 "File Read Error",
                 "Error seeking to offset in file"
             );
+
             fclose(pre_read);
             return;
         }
@@ -163,6 +173,7 @@ void read_text(FILE *pre_read, FILE *post_read){
                 "File Read Error",
                 "Error seeking to position in file"
             );
+
             fclose(pre_read);
             return;
         }
@@ -495,6 +506,10 @@ int main() {
     read_text(file3, answer);
 
     unsigned long end = mills(); // End time measurement
-    printf("Elapsed time: %lu ms\n", end - start);
+
+    char perf_msg[64];
+    snprintf(perf_msg, sizeof(perf_msg), "Elapsed time: %lu ms", end - start);
+    Log(LOG_TYPE_INFO, "Performance", perf_msg);
+    
     return 0;
 }
