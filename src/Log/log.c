@@ -1,6 +1,10 @@
 #include "log.h"
 
-void Log(const char* message) {
+void Log
+(
+    const char* message
+)
+{
 
 
 
@@ -8,7 +12,7 @@ void Log(const char* message) {
     /*
         Save a Log to file log.txt
     */
-    FILE* log_file = fopen("log.txt", "a");
+    FILE* log_file = fopen("output.log", "a");
     if (log_file == NULL) {
         return;
     }
