@@ -1,5 +1,9 @@
 #include "log.h"
-#include <sys/time.h>
+#ifdef _WIN32
+    #include <windows.h>
+#else
+    #include <sys/time.h>
+#endif
 
 void Log
 (
@@ -13,6 +17,13 @@ void Log
     char DateTime[64];
 
     // Get current date and time with milliseconds
+#ifdef _WIN32
+    SYSTEMTIME st;
+    GetLocalTime(&st);
+    snprintf(DateTime, sizeof(DateTime), "%04d-%02d-%02d %02d:%02d:%02d",
+        st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+    int millisec = st.wMilliseconds;
+#else
     struct timeval tv;
     struct tm* tm_info;
     gettimeofday(&tv, NULL);
@@ -20,6 +31,7 @@ void Log
     tm_info = localtime(&now_sec);
     strftime(DateTime, sizeof(DateTime), "%Y-%m-%d %H:%M:%S", tm_info);
     int millisec = tv.tv_usec / 1000;
+#endif
 
     /**
      * Format the log message based on the type
