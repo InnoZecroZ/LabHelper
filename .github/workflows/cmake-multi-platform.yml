@@ -52,15 +52,15 @@ jobs:
       shell: bash
       run: |
         if [ "$RUNNER_OS" = "Windows" ]; then
-          cmake -B ${{ steps.strings.outputs.build-output-dir }} -G "MinGW Makefiles" \
+          cmake -B "${{ steps.strings.outputs.build-output-dir }}" -G "MinGW Makefiles" \
             -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-            -S ${{ github.workspace }}
+            -S "${{ github.workspace }}"
         else
-          cmake -B ${{ steps.strings.outputs.build-output-dir }} \
+          cmake -B "${{ steps.strings.outputs.build-output-dir }}" \
             -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-            -S ${{ github.workspace }}
+            -S "${{ github.workspace }}"
         fi
 
     - name: Build
