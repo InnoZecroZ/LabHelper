@@ -5,6 +5,7 @@
     #include <sys/time.h>
     #include <time.h>
 #endif
+#include <string.h>
 
 void Log
 (
