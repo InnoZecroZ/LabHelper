@@ -273,8 +273,10 @@ void addition (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
     }
 
     // Print file size (on Debug)
-    //printf("filesize 1 : %llu\n", filesize1);
-    //printf("filesize 2 : %llu\n", filesize2);
+    if (DEBUG_MODE) {
+        printf("filesize 1 : %llu\n", filesize1);
+        printf("filesize 2 : %llu\n", filesize2);
+    }
 
 
 
@@ -410,7 +412,10 @@ void addition (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
             sum_of_char -= max_sum;
             carry = 1;
         }
-        //printf("sum of char without carry: %llu\n", sum_of_char); // <-- Debug
+
+        if (DEBUG_MODE) {
+            printf("sum of char without carry: %llu\n", sum_of_char); // <-- Debug
+        }
         
         // +++++++++++++++++++++++++ // ถ้า carry เป็น 1 ให้เพิ่ม 1 ให้ sum_of_char
         if (last_num1 == false && last_num2 == false){
