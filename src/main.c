@@ -20,6 +20,8 @@
     #include <unistd.h>
 #endif
 
+//define the max digit per read/calculation
+#define MAX_DIGIT 18
 
 // ================================================================================================================================
 
@@ -121,7 +123,7 @@ void read_text(FILE *pre_read, FILE *post_read){
 
     rewind(pre_read);
 
-    int offset = count % 18 * - 1;
+    int offset = count % MAX_DIGIT * - 1;
 
     //printf("Offset: %d\n", offset);
 
@@ -131,7 +133,7 @@ void read_text(FILE *pre_read, FILE *post_read){
     printf("Temp: %d\n", temp);
     */  
 
-    if ((count - 1) % 18 != 0) {
+    if ((count - 1) % MAX_DIGIT != 0) {
         //printf("\nOffset: %d\n", offset);
 
         if (fseek(pre_read, offset, SEEK_END) != 0) {
@@ -181,7 +183,7 @@ void read_text(FILE *pre_read, FILE *post_read){
     filesize += offset; //offset is a negative number
     //printf("filesize after offset : %llu\n", filesize);
 
-    const int buffersize = 18;
+    const int buffersize = MAX_DIGIT;
 #ifdef _MSC_VER
     char* raw = (char*)malloc(buffersize * sizeof(char));
     char* str = (char*)malloc((buffersize + 1) * sizeof(char));
@@ -200,7 +202,7 @@ void read_text(FILE *pre_read, FILE *post_read){
 
     while (filesize > 0) {
 
-        filesize -= 18;
+        filesize -= MAX_DIGIT;
         //printf("filesize : %llu\n", filesize);
         if (fseek(pre_read, filesize, SEEK_SET) != 0) {
             Log(
@@ -322,14 +324,14 @@ void addition (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
     
     while (InputFile_1 != NULL && InputFile_2 != NULL) {
         if (InputFile_1 != NULL) {
-            if (filesize1 < 18) {   // <-- If the file size is less than 18, read the whole file
+            if (filesize1 < MAX_DIGIT) {   // <-- If the file size is less than 18(max digit), read the whole file
                 rewind(InputFile_1); // Reset the file pointer to the beginning
                 Num1 = ffread(InputFile_1, filesize1);
                 filesize1 = 0;
                 last_num1 = true;
             } else {                // <-- If the file size is greater than or equal to 18, read the last 18 bytes
-                filesize1 -= 18;
-                if (fseek(InputFile_1, -18L, SEEK_END) != 0) {
+                filesize1 -= MAX_DIGIT;
+                if (fseek(InputFile_1, -MAX_DIGIT, SEEK_END) != 0) {
                     Log(LOG_TYPE_ERROR, "File Seek", "Error seeking InputFile_1 to last 18 bytes");
                     fclose(InputFile_1);
                     return;
@@ -342,7 +344,7 @@ void addition (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
                     return;
                 }
                 */
-                Num1 = ffread(InputFile_1, 18);
+                Num1 = ffread(InputFile_1, MAX_DIGIT);
             }
             //printf("Num 1 : %llu\n", Num1); // <-- Debug
 
@@ -363,14 +365,14 @@ void addition (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
         }
 
         if (InputFile_2 != NULL) {
-            if (filesize2 < 18) {
+            if (filesize2 < MAX_DIGIT) {
                 rewind(InputFile_2);
                 Num2 = ffread(InputFile_2, filesize2);
                 filesize2 = 0;
                 last_num2 = true;
             } else {
-                filesize2 -= 18;
-                if (fseek(InputFile_2, -18L, SEEK_END) != 0) {
+                filesize2 -= MAX_DIGIT;
+                if (fseek(InputFile_2, -MAX_DIGIT, SEEK_END) != 0) {
                     Log(LOG_TYPE_ERROR, "File Seek", "Error seeking InputFile_2 to last 18 bytes");
                     fclose(InputFile_2);
                     return;
@@ -383,7 +385,7 @@ void addition (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
                     return;
                 }
                 */
-                Num2 = ffread(InputFile_2, 18);
+                Num2 = ffread(InputFile_2, MAX_DIGIT);
             }
             //printf("Num 2 : %llu\n", Num2);
 
@@ -445,7 +447,7 @@ void addition (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
             }
 
             //printf("digit : %u\n", digit);
-            for (size_t i = 18; i > digit; i--)
+            for (size_t i = MAX_DIGIT; i > digit; i--)
             {
                 //add 0
                 fprintf(OutputFile, "0");
