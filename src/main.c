@@ -10,6 +10,7 @@
 #include "Log/log.h"
 #include "Timer/timer.h"
 #include "CopyFile/copyfile.h"
+#include "ParallelProcessing/parallel.h"
 
 /*
     Some Library are not available on all platforms.
