@@ -6,6 +6,7 @@
 #include <limits.h>
 #include <math.h>
 #include <string.h>
+#include <pthread.h>
 
 #include "Log/log.h"
 #include "Timer/timer.h"
@@ -19,12 +20,16 @@
     #include <unistd.h>
 #endif
 
-
+extern unsigned long long* result;
+extern int array_size;
+extern bool LastNum;
 
 // ================================================================================================================================
 
     // define the max digit per read/calculation
     #define MAX_DIGIT 18
+    // define the placeholder for result array
+    #define ULL_PLACEHOLDER ULLONG_MAX
 
 // ================================================================================================================================
 
@@ -215,7 +220,6 @@ void* addition (void* arg) {
     const int offset = thread_num * MAX_DIGIT;
     const int read_every = Num_of_Thread * MAX_DIGIT;
 
-    unsigned long long sum_of_char;     // ผลรวม Sum
     unsigned int carry = 0;             // The ทด
     unsigned long long Num1;            // Number from 1.txt
     unsigned long long Num2;            // Number from 2.txt
@@ -263,32 +267,6 @@ void* addition (void* arg) {
     }
 
 
-
-
-    /**
-     *   Get file descriptor
-     *
-     *   What is file descriptor?
-     *   A file descriptor is a small integer value that the operating system uses 
-     *   to identify and manage an open file. It is like an ID for an opened file,
-     *   not the file's name.
-     */
-    int fd1 = fileno(InputFile_1);
-    int fd2 = fileno(InputFile_2);
-
-    if (fd1 == -1) {
-        Log(LOG_TYPE_ERROR, "File Descriptor", "Error getting file descriptor for InputFile_1");
-        fclose(InputFile_1);
-        return NULL;
-    }
-    if (fd2 == -1) {
-        Log(LOG_TYPE_ERROR, "File Descriptor", "Error getting file descriptor for InputFile_2");
-        fclose(InputFile_2);
-        return NULL;
-    }
-
-
-
     
     while (last_num1 == false && last_num2 == false) {
         if (last_num1 == false) {
@@ -314,25 +292,10 @@ void* addition (void* arg) {
                 */
                 Num1 = ffread(InputFile_1, MAX_DIGIT);
             }
-            //printf("Num 1 : %llu\n", Num1); // <-- Debug
-
-            #ifdef _WIN32
-                if (_chsize_s(fd1, filesize1) != 0) {
-                    Log(LOG_TYPE_ERROR, "File Truncate", "Error truncating InputFile_1");
-                    fclose(InputFile_1);
-                    return NULL;
-                }
-            #else
-                if (ftruncate(fd1, filesize1) != 0) {
-                    Log(LOG_TYPE_ERROR, "File Truncate", "Error truncating InputFile_1");
-                    fclose(InputFile_1);
-                    return NULL;
-                }
-            #endif
-            //printf("File truncated successfully.(1)\n\n");
+            printf("Num 1 : %llu\n", Num1); // <-- Debug
         }
 
-        if (last_num2 != false) {
+        if (last_num2 == false) {
             if (filesize2 < MAX_DIGIT) {
                 rewind(InputFile_2);
                 Num2 = ffread(InputFile_2, filesize2);
@@ -355,22 +318,7 @@ void* addition (void* arg) {
                 */
                 Num2 = ffread(InputFile_2, MAX_DIGIT);
             }
-            //printf("Num 2 : %llu\n", Num2);
-
-            #ifdef _WIN32
-                if (_chsize_s(fd2, filesize2) != 0) {
-                    Log(LOG_TYPE_ERROR, "File Truncate", "Error truncating InputFile_2");
-                    fclose(InputFile_2);
-                    return NULL;
-                }
-            #else
-                if (ftruncate(fd2, filesize2) != 0) {
-                    Log(LOG_TYPE_ERROR, "File Truncate", "Error truncating InputFile_2");
-                    fclose(InputFile_2);
-                    return NULL;
-                }
-            #endif
-            //printf("File truncated successfully.(1)\n\n");
+            printf("Num 2 : %llu\n", Num2);
         }
 
         if (filesize1 == 0) {
@@ -386,47 +334,32 @@ void* addition (void* arg) {
 
 
         // +++++++++++++++++++++++++ // บวกตัวเลขทั้งสอง + carry
-        sum_of_char = Num1 + Num2 + carry;
+        result[thread_num] = Num1 + Num2 + carry;
         carry = 0;
-        //printf("sum of char: %llu\n\n", sum_of_char); // <-- Debug
+        printf("sum of char: %llu\n\n", result[thread_num]); // <-- Debug
         
-        // +++++++++++++++++++++++++ // ถ้า sum_of_char มากกว่าหรือเท่ากับ 1000000000000000000 ให้ลบ 1000000000000000000 และเพิ่ม carry เป็น 1
+        // +++++++++++++++++++++++++ // ถ้า result[thread_num] มากกว่าหรือเท่ากับ 1000000000000000000 ให้ลบ 1000000000000000000 และเพิ่ม carry เป็น 1
         unsigned long long max_sum = 1000000000000000000;
-        if (sum_of_char >= max_sum) {
-            sum_of_char -= max_sum;
+        if (result[thread_num] >= max_sum) {
+            result[thread_num] -= max_sum;
             carry = 1;
         }
 
         if (DEBUG_MODE) {
-            printf("sum of char without carry: %llu\n", sum_of_char); // <-- Debug
+            printf("sum of char without carry: %llu\n", result[thread_num]); // <-- Debug
         }
-        
-        // +++++++++++++++++++++++++ // ถ้า carry เป็น 1 ให้เพิ่ม 1 ให้ sum_of_char
-        if (last_num1 == false && last_num2 == false){
-            //linear search
-            unsigned long long digit = 0;
-            for (unsigned long long i = 1; i <= 1000000000000000000ULL; digit++)
-            {
-                if (sum_of_char >= i) {
-                    i *= 10;
-                } else {
-                    break;
-                }
-            }
 
-            //printf("digit : %u\n", digit);
-            for (size_t i = MAX_DIGIT; i > digit; i--)
-            {
-                //add 0
-                fprintf(OutputFile, "0");
-            }
+        if (last_num1 == true && last_num2 == true)
+        {
+            LastNum = true;
+            return NULL;
         }
 
         // +++++++++++++++++++++++++ // เขียนผลลัพธ์ลงไฟล์
-        fprintf(OutputFile, "%llu", sum_of_char);
-        sum_of_char = 0;
+        //fprintf(OutputFile, "%llu", result[thread_num]);
         Num1 = 0;
         Num2 = 0;
+        //printf("File truncated successfully.\n\n");
     }
 }
 
@@ -457,6 +390,7 @@ void Divide (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
 /*
     Function main
 */
+
 int main(int argc, char *argv[]) {
 
     if (DEBUG_MODE) {
@@ -484,28 +418,30 @@ int main(int argc, char *argv[]) {
 
     // -------------------------------------------------------------------------------------------
 
+    const char* filename1 = "1.txt";
+    const char* filename2 = "2.txt";
+    const char* filename3 = "unread-answer.txt";
 
-    FILE *file1 = fopen("1.txt", "r+");
-    FILE *file2 = fopen("2.txt", "r+");
 
-    if (!file1) {
-        Log(LOG_TYPE_ERROR, "File Open", "Error opening 1.txt");
-        return 1;
+    array_size = 1;
+    result = malloc(array_size * sizeof(unsigned long long));
+    if (result == NULL)
+    {
+        Log(LOG_TYPE_ERROR, "Memory Allocation", "Fail");
     }
-    if (!file2) {
-        Log(LOG_TYPE_ERROR, "File Open", "Error opening 2.txt");
-        return 1;
-    }
 
-    FILE *file3 = fopen("unread-answer.txt", "w+");
+    for (size_t i = 0; i < array_size; i++)
+    {
+        result[i] = ULL_PLACEHOLDER;
+    }
+    
+    FILE* file3 = fopen(filename3, "r+");
+    FILE* answer = fopen("answer.txt", "w");
 
     if (!file3) {
         Log(LOG_TYPE_ERROR, "File Open", "Error opening unread-answer.txt");
         return 1;
     }
-
-    FILE *answer = fopen("answer.txt", "w");
-
     if (!answer) {
         Log(LOG_TYPE_ERROR, "File Open", "Error opening answer.txt");
         return 1;
@@ -513,7 +449,7 @@ int main(int argc, char *argv[]) {
 
     unsigned long start = mills();  // Start time measurement
 
-    (void)Create_Thread(1, file1, file2, file3);
+    (void)Create_Thread(1, filename1, filename2, filename3);
 
     read_text(file3, answer);
 

@@ -1,9 +1,9 @@
-#ifndef PARALLEL_H
-#define PARALLEL_H
+#ifndef FPRINTF_PARALLEL_H
+#define FPRINTF_PARALLEL_H
 
     #include <stdio.h>
 
-    void Create_Thread(
+    void Print_Thread(
         unsigned int Num_of_Thread, 
         const char* filename1, 
         const char* filename2, 
