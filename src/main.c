@@ -205,7 +205,7 @@ void read_text(FILE *pre_read, FILE *post_read){
 
 
 void* addition (void* arg) {
-    ThreadArgs* args = (ThreadArgs*)args;
+    ThreadArgs* args = (ThreadArgs*)arg;
     FILE *InputFile_1 = args->InputFile_1;
     FILE *InputFile_2 = args->InputFile_2;
     FILE *OutputFile = args->OutputFile;
