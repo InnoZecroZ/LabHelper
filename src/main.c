@@ -23,13 +23,13 @@
 
 // ================================================================================================================================
 
-// define the max digit per read/calculation
-#define MAX_DIGIT 18
+    // define the max digit per read/calculation
+    #define MAX_DIGIT 18
 
 // ================================================================================================================================
 
-// You can change this for some thing you want to change on debug mode
-#define DEBUG_MODE false
+    // You can change this for some thing you want to change on debug mode
+    #define DEBUG_MODE false
 
 // ================================================================================================================================
 
@@ -329,7 +329,7 @@ void* addition (void* arg) {
                     return NULL;
                 }
             #endif
-                //printf("File truncated successfully.(1)\n\n");
+            //printf("File truncated successfully.(1)\n\n");
         }
 
         if (last_num2 != false) {
@@ -370,7 +370,7 @@ void* addition (void* arg) {
                     return NULL;
                 }
             #endif
-                //printf("File truncated successfully.(1)\n\n");
+            //printf("File truncated successfully.(1)\n\n");
         }
 
         if (filesize1 == 0) {
@@ -457,7 +457,7 @@ void Divide (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
 /*
     Function main
 */
-int main() {
+int main(int argc, char *argv[]) {
 
     if (DEBUG_MODE) {
         /*
