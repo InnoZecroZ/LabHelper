@@ -7,6 +7,8 @@
         FILE *InputFile_1;
         FILE *InputFile_2;
         FILE *OutputFile;
+        int Thread_Num;
+        int Num_of_Thread;
     } ThreadArgs;
 
 #endif // PARALLEL_H

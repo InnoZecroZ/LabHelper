@@ -19,9 +19,11 @@ void Create_Thread(
     args->InputFile_1 = InputFile_1;
     args->InputFile_2 = InputFile_2;
     args->OutputFile = OutputFile;
+    args->Num_of_Thread = Num_of_Thread;
 
     for (size_t i = 0; i < Num_of_Thread; i++)
     {
+        args->Thread_Num = i;
         if (
             pthread_create(
                 &Thread_ID[i], 
@@ -37,5 +39,6 @@ void Create_Thread(
         
     }
     pthread_join(Thread_ID[0], NULL);
+    free(args);
 }
 

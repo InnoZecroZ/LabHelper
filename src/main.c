@@ -209,8 +209,11 @@ void* addition (void* arg) {
     FILE *InputFile_1 = args->InputFile_1;
     FILE *InputFile_2 = args->InputFile_2;
     FILE *OutputFile = args->OutputFile;
-    free(args);
-    
+    const int thread_num = args->Thread_Num;
+    const int Num_of_Thread = args->Num_of_Thread;
+
+    const int offset = thread_num * MAX_DIGIT;
+    const int read_every = Num_of_Thread * MAX_DIGIT;
 
     unsigned long long sum_of_char;     // ผลรวม Sum
     unsigned int carry = 0;             // The ทด
@@ -287,16 +290,16 @@ void* addition (void* arg) {
 
 
     
-    while (InputFile_1 != NULL && InputFile_2 != NULL) {
-        if (InputFile_1 != NULL) {
+    while (last_num1 == false && last_num2 == false) {
+        if (last_num1 == false) {
             if (filesize1 < MAX_DIGIT) {   // <-- If the file size is less than 18(max digit), read the whole file
                 rewind(InputFile_1); // Reset the file pointer to the beginning
                 Num1 = ffread(InputFile_1, filesize1);
                 filesize1 = 0;
                 last_num1 = true;
             } else {                // <-- If the file size is greater than or equal to 18, read the last 18 bytes
-                filesize1 -= MAX_DIGIT;
-                if (fseek(InputFile_1, -MAX_DIGIT, SEEK_END) != 0) {
+                filesize1 -= read_every;
+                if (fseek(InputFile_1, -offset, SEEK_END) != 0) {
                     Log(LOG_TYPE_ERROR, "File Seek", "Error seeking InputFile_1 to last 18 bytes");
                     fclose(InputFile_1);
                     return NULL;
@@ -329,15 +332,15 @@ void* addition (void* arg) {
                 //printf("File truncated successfully.(1)\n\n");
         }
 
-        if (InputFile_2 != NULL) {
+        if (last_num2 != false) {
             if (filesize2 < MAX_DIGIT) {
                 rewind(InputFile_2);
                 Num2 = ffread(InputFile_2, filesize2);
                 filesize2 = 0;
                 last_num2 = true;
             } else {
-                filesize2 -= MAX_DIGIT;
-                if (fseek(InputFile_2, -MAX_DIGIT, SEEK_END) != 0) {
+                filesize2 -= read_every;
+                if (fseek(InputFile_2, -offset, SEEK_END) != 0) {
                     Log(LOG_TYPE_ERROR, "File Seek", "Error seeking InputFile_2 to last 18 bytes");
                     fclose(InputFile_2);
                     return NULL;
