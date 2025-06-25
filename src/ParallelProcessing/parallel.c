@@ -3,6 +3,8 @@
 #include <pthread.h>
 #include "../Struct/TreadArgs.h"
 #include "../Log/log.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 void Create_Thread(
     unsigned int Num_of_Thread, 
