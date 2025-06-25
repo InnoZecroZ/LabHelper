@@ -11,6 +11,7 @@
 #include "Timer/timer.h"
 #include "CopyFile/copyfile.h"
 #include "ParallelProcessing/parallel.h"
+#include "Struct/TreadArgs.h"
 
 #ifdef _WIN32
     #include <io.h>
@@ -203,13 +204,20 @@ void read_text(FILE *pre_read, FILE *post_read){
 // ================================================================================================================================
 
 
-void addition (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
+void* addition (void* arg) {
+    ThreadArgs* args = (ThreadArgs*)args;
+    FILE *InputFile_1 = args->InputFile_1;
+    FILE *InputFile_2 = args->InputFile_2;
+    FILE *OutputFile = args->OutputFile;
+    free(args);
+    
+
     unsigned long long sum_of_char;     // ผลรวม Sum
     unsigned int carry = 0;             // The ทด
     unsigned long long Num1;            // Number from 1.txt
     unsigned long long Num2;            // Number from 2.txt
-    bool last_num1 = false, last_num2 = false;
 
+    bool last_num1 = false, last_num2 = false;
 
     /*
         Find the file size
@@ -219,12 +227,12 @@ void addition (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
     if (fseek(InputFile_1, 0, SEEK_END) != 0) {
         Log(LOG_TYPE_ERROR, "File Seek", "Error seeking InputFile_1 to end");
         fclose(InputFile_1);
-        return;
+        return NULL;
     }
     if (fseek(InputFile_2, 0, SEEK_END) != 0) {
         Log(LOG_TYPE_ERROR, "File Seek", "Error seeking InputFile_2 to end");
         fclose(InputFile_2);
-        return;
+        return NULL;
     }
     
     // Tell the cursor position
@@ -236,13 +244,13 @@ void addition (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
         printf("File empty or error\n");
         Log(LOG_TYPE_ERROR, "File Size", "InputFile_1 is empty or error");
         fclose(InputFile_1);
-        return;
+        return NULL;
     }
     if (filesize2 <= 0) {
         printf("File empty or error\n");
         Log(LOG_TYPE_ERROR, "File Size", "InputFile_2 is empty or error");
         fclose(InputFile_2);
-        return;
+        return NULL;
     }
 
     // Print file size (on Debug)
@@ -268,12 +276,12 @@ void addition (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
     if (fd1 == -1) {
         Log(LOG_TYPE_ERROR, "File Descriptor", "Error getting file descriptor for InputFile_1");
         fclose(InputFile_1);
-        return;
+        return NULL;
     }
     if (fd2 == -1) {
         Log(LOG_TYPE_ERROR, "File Descriptor", "Error getting file descriptor for InputFile_2");
         fclose(InputFile_2);
-        return;
+        return NULL;
     }
 
 
@@ -291,7 +299,7 @@ void addition (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
                 if (fseek(InputFile_1, -MAX_DIGIT, SEEK_END) != 0) {
                     Log(LOG_TYPE_ERROR, "File Seek", "Error seeking InputFile_1 to last 18 bytes");
                     fclose(InputFile_1);
-                    return;
+                    return NULL;
                 }
 
                 /* <-- This is not needed, because we already seek to the end of the file
@@ -309,13 +317,13 @@ void addition (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
                 if (_chsize_s(fd1, filesize1) != 0) {
                     Log(LOG_TYPE_ERROR, "File Truncate", "Error truncating InputFile_1");
                     fclose(InputFile_1);
-                    return;
+                    return NULL;
                 }
             #else
                 if (ftruncate(fd1, filesize1) != 0) {
                     Log(LOG_TYPE_ERROR, "File Truncate", "Error truncating InputFile_1");
                     fclose(InputFile_1);
-                    return;
+                    return NULL;
                 }
             #endif
                 //printf("File truncated successfully.(1)\n\n");
@@ -332,7 +340,7 @@ void addition (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
                 if (fseek(InputFile_2, -MAX_DIGIT, SEEK_END) != 0) {
                     Log(LOG_TYPE_ERROR, "File Seek", "Error seeking InputFile_2 to last 18 bytes");
                     fclose(InputFile_2);
-                    return;
+                    return NULL;
                 }
 
                 /*
@@ -350,13 +358,13 @@ void addition (FILE *InputFile_1, FILE *InputFile_2, FILE *OutputFile) {
                 if (_chsize_s(fd2, filesize2) != 0) {
                     Log(LOG_TYPE_ERROR, "File Truncate", "Error truncating InputFile_2");
                     fclose(InputFile_2);
-                    return;
+                    return NULL;
                 }
             #else
                 if (ftruncate(fd2, filesize2) != 0) {
                     Log(LOG_TYPE_ERROR, "File Truncate", "Error truncating InputFile_2");
                     fclose(InputFile_2);
-                    return;
+                    return NULL;
                 }
             #endif
                 //printf("File truncated successfully.(1)\n\n");
@@ -502,7 +510,7 @@ int main() {
 
     unsigned long start = mills();  // Start time measurement
 
-    addition(file1, file2, file3);
+    (void)Create_Thread(1, file1, file2, file3);
 
     read_text(file3, answer);
 
