@@ -4,13 +4,19 @@
 #include <pthread.h>
 #include <errno.h>
 #include <limits.h>
-#include "../Log/log.h"
+#include <stdlib.h>
 
 #ifdef _WIN32
     #include <io.h>
 #else
     #include <unistd.h>
 #endif
+
+
+
+#include "../Log/log.h"
+
+
 
 #define MAX_DIGIT 18;
 #define ULL_PLACEHOLDER ULLONG_MAX
@@ -121,8 +127,14 @@ void Print_Thread(
      *   not the file's name.
      */
 
-    int fd1 = _fileno(InputFile_1);
-    int fd2 = _fileno(InputFile_2);
+    // Fix file descriptor selection:
+    #ifdef _WIN32
+        int fd1 = _fileno(InputFile_1);
+        int fd2 = _fileno(InputFile_2);
+    #else
+        int fd1 = fileno(InputFile_1);
+        int fd2 = fileno(InputFile_2);
+    #endif
 
     if (fd1 == -1) {
         Log(LOG_TYPE_ERROR, "File Descriptor", "Error getting file descriptor for InputFile_1");
