@@ -110,7 +110,7 @@ void read_text(FILE *pre_read, FILE *post_read){
             "File Read Error",
             "File is empty or error"
         );
-
+        perror("Filesize");
         fclose(pre_read);
         return;
     }
@@ -292,7 +292,7 @@ void* addition (void* arg) {
                 */
                 Num1 = ffread(InputFile_1, MAX_DIGIT);
             }
-            printf("Num 1 : %llu\n", Num1); // <-- Debug
+            //printf("Num 1 : %llu\n", Num1); // <-- Debug
         }
 
         if (last_num2 == false) {
@@ -318,7 +318,7 @@ void* addition (void* arg) {
                 */
                 Num2 = ffread(InputFile_2, MAX_DIGIT);
             }
-            printf("Num 2 : %llu\n", Num2);
+            //printf("Num 2 : %llu\n", Num2);
         }
 
         if (filesize1 == 0) {
@@ -336,7 +336,7 @@ void* addition (void* arg) {
         // +++++++++++++++++++++++++ // บวกตัวเลขทั้งสอง + carry
         result[thread_num] = Num1 + Num2 + carry;
         carry = 0;
-        printf("sum of char: %llu\n\n", result[thread_num]); // <-- Debug
+        //printf("sum of char: %llu\n\n", result[thread_num]); // <-- Debug
         
         // +++++++++++++++++++++++++ // ถ้า result[thread_num] มากกว่าหรือเท่ากับ 1000000000000000000 ให้ลบ 1000000000000000000 และเพิ่ม carry เป็น 1
         unsigned long long max_sum = 1000000000000000000;
@@ -434,7 +434,11 @@ int main(int argc, char *argv[]) {
     {
         result[i] = ULL_PLACEHOLDER;
     }
-    
+
+    unsigned long start = mills();  // Start time measurement
+
+    Create_Thread(1, filename1, filename2, filename3);
+
     FILE* file3 = fopen(filename3, "r+");
     FILE* answer = fopen("answer.txt", "w");
 
@@ -446,10 +450,6 @@ int main(int argc, char *argv[]) {
         Log(LOG_TYPE_ERROR, "File Open", "Error opening answer.txt");
         return 1;
     }
-
-    unsigned long start = mills();  // Start time measurement
-
-    (void)Create_Thread(1, filename1, filename2, filename3);
 
     read_text(file3, answer);
 

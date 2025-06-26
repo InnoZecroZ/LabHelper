@@ -39,7 +39,7 @@ void TruncateFile(
 )
 {
     //printf("filesize : %llu\n", filesize);
-    printf("fd : %d\n", fd);
+    //printf("fd : %d\n", fd);
     #ifdef _WIN32
         if (_chsize_s(fd, filesize) != 0) {
             Log(LOG_TYPE_ERROR, "File Truncate", "Error truncating InputFile_1");
@@ -155,7 +155,7 @@ void Print_Thread(
     {
         if (result[i] != ULL_PLACEHOLDER)
         {
-            printf("Result: %llu\n", result[i]);
+            //printf("Result: %llu\n", result[i]);
             fprintf(OutputFile, "%llu", result[i]);
             result[i] = ULL_PLACEHOLDER;
 
@@ -201,4 +201,8 @@ void Print_Thread(
             }
         }
     }
+
+    fclose(InputFile_1);
+    fclose(InputFile_2);
+    fclose(OutputFile);
 }
