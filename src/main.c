@@ -20,16 +20,10 @@
     #include <unistd.h>
 #endif
 
-extern unsigned long long* result;
-extern int array_size;
-extern bool LastNum;
-
 // ================================================================================================================================
 
     // define the max digit per read/calculation
     #define MAX_DIGIT 18
-    // define the placeholder for result array
-    #define ULL_PLACEHOLDER ULLONG_MAX
 
 // ================================================================================================================================
 
@@ -334,29 +328,25 @@ void* addition (void* arg) {
 
 
         // +++++++++++++++++++++++++ // บวกตัวเลขทั้งสอง + carry
-        result[thread_num] = Num1 + Num2 + carry;
+        unsigned long long result;
+        result = Num1 + Num2 + carry;
         carry = 0;
-        //printf("sum of char: %llu\n\n", result[thread_num]); // <-- Debug
+        //printf("sum of char: %llu\n\n", result); // <-- Debug
         
-        // +++++++++++++++++++++++++ // ถ้า result[thread_num] มากกว่าหรือเท่ากับ 1000000000000000000 ให้ลบ 1000000000000000000 และเพิ่ม carry เป็น 1
+        // +++++++++++++++++++++++++ // ถ้า result มากกว่าหรือเท่ากับ 1000000000000000000 ให้ลบ 1000000000000000000 และเพิ่ม carry เป็น 1
         unsigned long long max_sum = 1000000000000000000;
-        if (result[thread_num] >= max_sum) {
-            result[thread_num] -= max_sum;
+        if (result >= max_sum) {
+            result -= max_sum;
             carry = 1;
         }
 
         if (DEBUG_MODE) {
-            printf("sum of char without carry: %llu\n", result[thread_num]); // <-- Debug
+            printf("sum of char without carry: %llu\n", result); // <-- Debug
         }
 
-        if (last_num1 == true && last_num2 == true)
-        {
-            LastNum = true;
-            return NULL;
-        }
 
         // +++++++++++++++++++++++++ // เขียนผลลัพธ์ลงไฟล์
-        //fprintf(OutputFile, "%llu", result[thread_num]);
+        fprintf(OutputFile, "%llu", result);
         Num1 = 0;
         Num2 = 0;
         //printf("File truncated successfully.\n\n");
@@ -421,19 +411,6 @@ int main(int argc, char *argv[]) {
     const char* filename1 = "1.txt";
     const char* filename2 = "2.txt";
     const char* filename3 = "unread-answer.txt";
-
-
-    array_size = 1;
-    result = malloc(array_size * sizeof(unsigned long long));
-    if (result == NULL)
-    {
-        Log(LOG_TYPE_ERROR, "Memory Allocation", "Fail");
-    }
-
-    for (size_t i = 0; i < array_size; i++)
-    {
-        result[i] = ULL_PLACEHOLDER;
-    }
 
     unsigned long start = mills();  // Start time measurement
 

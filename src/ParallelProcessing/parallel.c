@@ -2,7 +2,6 @@
 #include "../main.h"
 #include "../Struct/TreadArgs.h"
 #include "../Log/log.h"
-#include "fprintf_parallel.h"
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -57,7 +56,6 @@ void Create_Thread(
             Log(LOG_TYPE_ERROR, "Pthread", "Fail to Create");
         }    
     }
-    Print_Thread(Num_of_Thread, filename1, filename2, filename3);
     pthread_join(Thread_ID[0], NULL);
 
     free(args);
