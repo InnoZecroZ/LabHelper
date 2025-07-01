@@ -32,7 +32,11 @@
 
 // ================================================================================================================================
 
-
+extern FILE* InputFile_1;
+extern FILE* InputFile_2;
+extern FILE* OutputFile;
+extern unsigned long long filesize1;
+extern unsigned long long filesize2;
 
 /**
  *    Function to read a file in chunks of a specified size.
@@ -205,9 +209,6 @@ void read_text(FILE *pre_read, FILE *post_read){
 
 void* addition (void* arg) {
     ThreadArgs* args = (ThreadArgs*)arg;
-    FILE *InputFile_1 = args->InputFile_1;
-    FILE *InputFile_2 = args->InputFile_2;
-    FILE *OutputFile = args->OutputFile;
     const int thread_num = args->Thread_Num;
     const int Num_of_Thread = args->Num_of_Thread;
 
@@ -223,44 +224,6 @@ void* addition (void* arg) {
     /*
         Find the file size
     */
-
-    // Move the cursor to end of files
-    if (fseek(InputFile_1, 0, SEEK_END) != 0) {
-        Log(LOG_TYPE_ERROR, "File Seek", "Error seeking InputFile_1 to end");
-        fclose(InputFile_1);
-        return NULL;
-    }
-    if (fseek(InputFile_2, 0, SEEK_END) != 0) {
-        Log(LOG_TYPE_ERROR, "File Seek", "Error seeking InputFile_2 to end");
-        fclose(InputFile_2);
-        return NULL;
-    }
-    
-    // Tell the cursor position
-    unsigned long long filesize1 = ftell(InputFile_1);
-    unsigned long long filesize2 = ftell(InputFile_2);
-        
-    // Check empty
-    if (filesize1 <= 0) {
-        printf("File empty or error\n");
-        Log(LOG_TYPE_ERROR, "File Size", "InputFile_1 is empty or error");
-        fclose(InputFile_1);
-        return NULL;
-    }
-    if (filesize2 <= 0) {
-        printf("File empty or error\n");
-        Log(LOG_TYPE_ERROR, "File Size", "InputFile_2 is empty or error");
-        fclose(InputFile_2);
-        return NULL;
-    }
-
-    // Print file size (on Debug)
-    if (DEBUG_MODE) {
-        printf("filesize 1 : %llu\n", filesize1);
-        printf("filesize 2 : %llu\n", filesize2);
-    }
-
-
     
     while (last_num1 == false && last_num2 == false) {
         if (last_num1 == false) {
@@ -408,27 +371,74 @@ int main(int argc, char *argv[]) {
 
     // -------------------------------------------------------------------------------------------
 
-    const char* filename1 = "1.txt";
-    const char* filename2 = "2.txt";
-    const char* filename3 = "unread-answer.txt";
+    InputFile_1 = fopen("1.txt", "r+");
+    InputFile_2 = fopen("2.txt", "r+");
+    OutputFile = fopen("unread-answer.txt", "w+");
+
+    if (!InputFile_1) {
+        Log(LOG_TYPE_ERROR, "File Open", "Error opening 1.txt");
+        exit(1);
+    }
+    if (!InputFile_2) {
+        Log(LOG_TYPE_ERROR, "File Open", "Error opening 2.txt");
+        exit(1);
+    }
+    if (!OutputFile) {
+        Log(LOG_TYPE_ERROR, "File Open", "Error opening unread-answer.txt");
+        exit(1);
+    }
+
+    ThreadArgs* args = malloc(sizeof(ThreadArgs));
+    args->Num_of_Thread = 1;
+
+    // Move the cursor to end of files
+    if (fseek(InputFile_1, 0, SEEK_END) != 0) {
+        Log(LOG_TYPE_ERROR, "File Seek", "Error seeking InputFile_1 to end");
+        fclose(InputFile_1);
+        return NULL;
+    }
+    if (fseek(InputFile_2, 0, SEEK_END) != 0) {
+        Log(LOG_TYPE_ERROR, "File Seek", "Error seeking InputFile_2 to end");
+        fclose(InputFile_2);
+        return NULL;
+    }
+    
+    // Tell the cursor position
+    filesize1 = ftell(InputFile_1);
+    filesize2 = ftell(InputFile_2);
+        
+    // Check empty
+    if (filesize1 <= 0) {
+        printf("File empty or error\n");
+        Log(LOG_TYPE_ERROR, "File Size", "InputFile_1 is empty or error");
+        fclose(InputFile_1);
+        return NULL;
+    }
+    if (filesize2 <= 0) {
+        printf("File empty or error\n");
+        Log(LOG_TYPE_ERROR, "File Size", "InputFile_2 is empty or error");
+        fclose(InputFile_2);
+        return NULL;
+    }
+
+    // Print file size (on Debug)
+    if (DEBUG_MODE) {
+        printf("filesize 1 : %llu\n", filesize1);
+        printf("filesize 2 : %llu\n", filesize2);
+    }
 
     unsigned long start = mills();  // Start time measurement
 
-    Create_Thread(1, filename1, filename2, filename3);
+    Create_Thread(args);
 
-    FILE* file3 = fopen(filename3, "r+");
     FILE* answer = fopen("answer.txt", "w");
 
-    if (!file3) {
-        Log(LOG_TYPE_ERROR, "File Open", "Error opening unread-answer.txt");
-        return 1;
-    }
     if (!answer) {
         Log(LOG_TYPE_ERROR, "File Open", "Error opening answer.txt");
         return 1;
     }
 
-    read_text(file3, answer);
+    read_text(OutputFile, answer);
 
     unsigned long end = mills(); // End time measurement
 

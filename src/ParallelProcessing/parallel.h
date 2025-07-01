@@ -4,10 +4,7 @@
     #include <stdio.h>
 
     void Create_Thread(
-        unsigned int Num_of_Thread, 
-        const char* filename1, 
-        const char* filename2, 
-        const char* filename3
+        void* arg
     );
 
 #endif // PARALLEL_H

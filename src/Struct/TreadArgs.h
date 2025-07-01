@@ -4,9 +4,6 @@
     #include <stdio.h>
 
     typedef struct {
-        FILE *InputFile_1;
-        FILE *InputFile_2;
-        FILE *OutputFile;
         int Thread_Num;
         int Num_of_Thread;
     } ThreadArgs;

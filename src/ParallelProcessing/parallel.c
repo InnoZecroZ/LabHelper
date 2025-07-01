@@ -2,43 +2,24 @@
 #include "../main.h"
 #include "../Struct/TreadArgs.h"
 #include "../Log/log.h"
+
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+extern FILE* InputFile_1;
+extern FILE* InputFile_2;
+extern FILE* OutputFile;
+
 void Create_Thread(
-    unsigned int Num_of_Thread, 
-    const char* filename1, 
-    const char* filename2, 
-    const char* filename3
+    void* arg
 )
 {
-    FILE *InputFile_1 = fopen(filename1, "r+");
-    FILE *InputFile_2 = fopen(filename2, "r+");
-
-    if (!InputFile_1) {
-        Log(LOG_TYPE_ERROR, "File Open", "Error opening 1.txt");
-        exit(1);
-    }
-    if (!InputFile_2) {
-        Log(LOG_TYPE_ERROR, "File Open", "Error opening 2.txt");
-        exit(1);
-    }
-
-    FILE *OutputFile = fopen(filename3, "w+");
-
-    if (!OutputFile) {
-        Log(LOG_TYPE_ERROR, "File Open", "Error opening unread-answer.txt");
-        exit(1);
-    }
+    ThreadArgs* args = (ThreadArgs*)arg;
+    const int thread_num = args->Thread_Num;
+    const int Num_of_Thread = args->Num_of_Thread;
 
     pthread_t Thread_ID[Num_of_Thread];
-
-    ThreadArgs* args = malloc(sizeof(ThreadArgs));
-    args->InputFile_1 = InputFile_1;
-    args->InputFile_2 = InputFile_2;
-    args->OutputFile = OutputFile;
-    args->Num_of_Thread = Num_of_Thread;
 
     for (size_t i = 0; i < Num_of_Thread; i++)
     {
@@ -59,9 +40,5 @@ void Create_Thread(
     pthread_join(Thread_ID[0], NULL);
 
     free(args);
-
-    fclose(InputFile_1);
-    fclose(InputFile_2);
-    fclose(OutputFile);
 }
 
