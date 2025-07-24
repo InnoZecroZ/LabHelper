@@ -234,7 +234,7 @@ void* addition (void* arg) {
                 last_num1 = true;
             } else {                // <-- If the file size is greater than or equal to 18, read the last 18 bytes
                 filesize1 -= read_every;
-                if (fseek(InputFile_1, -offset, SEEK_END) != 0) {
+                if (fseek(InputFile_1, -offset-read_every, SEEK_END) != 0) {
                     Log(LOG_TYPE_ERROR, "File Seek", "Error seeking InputFile_1 to last 18 bytes");
                     fclose(InputFile_1);
                     return NULL;
@@ -260,7 +260,7 @@ void* addition (void* arg) {
                 last_num2 = true;
             } else {
                 filesize2 -= read_every;
-                if (fseek(InputFile_2, -offset, SEEK_END) != 0) {
+                if (fseek(InputFile_2, -offset-read_every, SEEK_END) != 0) {
                     Log(LOG_TYPE_ERROR, "File Seek", "Error seeking InputFile_2 to last 18 bytes");
                     fclose(InputFile_2);
                     return NULL;
@@ -395,12 +395,12 @@ int main(int argc, char *argv[]) {
     if (fseek(InputFile_1, 0, SEEK_END) != 0) {
         Log(LOG_TYPE_ERROR, "File Seek", "Error seeking InputFile_1 to end");
         fclose(InputFile_1);
-        return NULL;
+        exit(1);
     }
     if (fseek(InputFile_2, 0, SEEK_END) != 0) {
         Log(LOG_TYPE_ERROR, "File Seek", "Error seeking InputFile_2 to end");
         fclose(InputFile_2);
-        return NULL;
+        exit(1);
     }
     
     // Tell the cursor position
@@ -412,13 +412,13 @@ int main(int argc, char *argv[]) {
         printf("File empty or error\n");
         Log(LOG_TYPE_ERROR, "File Size", "InputFile_1 is empty or error");
         fclose(InputFile_1);
-        return NULL;
+        exit(1);
     }
     if (filesize2 <= 0) {
         printf("File empty or error\n");
         Log(LOG_TYPE_ERROR, "File Size", "InputFile_2 is empty or error");
         fclose(InputFile_2);
-        return NULL;
+        exit(1);
     }
 
     // Print file size (on Debug)
