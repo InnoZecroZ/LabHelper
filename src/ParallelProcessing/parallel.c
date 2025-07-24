@@ -11,34 +11,35 @@ extern FILE* InputFile_1;
 extern FILE* InputFile_2;
 extern FILE* OutputFile;
 
+extern int ThreadCount;
+
 void Create_Thread(
     void* arg
 )
 {
-    ThreadArgs* args = (ThreadArgs*)arg;
-    const int thread_num = args->Thread_Num;
-    const int Num_of_Thread = args->Num_of_Thread;
+    // TODO: Fix a arguments for threads
+    // TODO: IDK What to fix and put please contact "kornpat"
+    //int* ThreadID = malloc(sizeof(int));
 
-    pthread_t Thread_ID[Num_of_Thread];
+    pthread_t ThreadWorker[ThreadCount];
 
-    for (size_t i = 0; i < Num_of_Thread; i++)
+    for (size_t i = 0; i < ThreadCount; i++)
     {
-        args->Thread_Num = i;
-        if (
-            pthread_create(
-                &Thread_ID[i], 
-                NULL, 
-                addition, 
-                (void*)args
-            )
-            != 0
-        )
-        {
-            Log(LOG_TYPE_ERROR, "Pthread", "Fail to Create");
-        }    
-    }
-    pthread_join(Thread_ID[0], NULL);
+        int result = pthread_create(
+            &ThreadWorker[i],
+            NULL,
+            addition,
+            (void*)arg
+        );
 
-    free(args);
+        if (result != 0)
+        {
+            Log(LOG_TYPE_ERROR, "Pthread", "Fail to Create Thread");
+        }
+    }
+
+    pthread_join(ThreadWorker[0], NULL);
+
+    free(arg);
 }
 

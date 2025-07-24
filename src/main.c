@@ -206,14 +206,18 @@ void read_text(FILE *pre_read, FILE *post_read){
 
 // ================================================================================================================================
 
+extern int ThreadCount;
+
+ThreadCount = 1;
 
 void* addition (void* arg) {
     ThreadArgs* args = (ThreadArgs*)arg;
-    const int thread_num = args->Thread_Num;
-    const int Num_of_Thread = args->Num_of_Thread;
+    
+    // รับ input จาก thread
+    const int ThreadID = args->ThreadID;
 
-    const int offset = thread_num * MAX_DIGIT;
-    const int read_every = Num_of_Thread * MAX_DIGIT;
+    const int offset = ThreadID * MAX_DIGIT;
+    const int read_every = ThreadCount * MAX_DIGIT;
 
     unsigned int carry = 0;             // The ทด
     unsigned long long Num1;            // Number from 1.txt
@@ -388,9 +392,10 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
+    // ใส่ input thread เข้าไปใน thread
     ThreadArgs* args = malloc(sizeof(ThreadArgs));
-    args->Num_of_Thread = 1;
 
+    
     // Move the cursor to end of files
     if (fseek(InputFile_1, 0, SEEK_END) != 0) {
         Log(LOG_TYPE_ERROR, "File Seek", "Error seeking InputFile_1 to end");
