@@ -12,10 +12,11 @@
 #include "Timer/timer.h"
 #include "CopyFile/copyfile.h"
 #include "ParallelProcessing/parallel.h"
-#include "Struct/TreadArgs.h"
+#include "main.h"
 
 #ifdef _WIN32
     #include <io.h>
+    #include <windows.h>
 #else
     #include <unistd.h>
 #endif
@@ -37,6 +38,9 @@ extern FILE* InputFile_2;
 extern FILE* OutputFile;
 extern unsigned long long filesize1;
 extern unsigned long long filesize2;
+extern int ThreadCount;
+extern pthread_mutex_t file_mutex;
+extern pthread_mutex_t output_mutex;
 
 /**
  *    Function to read a file in chunks of a specified size.
@@ -83,11 +87,17 @@ unsigned long long ffread(FILE *file, int buffersize){
 
 
 
-
+// TODO: REad Fiel can't read IDK Why but task is check this function
 /**
  * 
  */
 void read_text(FILE *pre_read, FILE *post_read){
+
+    Log(
+        LOG_TYPE_DEBUG,
+        "File Read",
+        "Starting to read file"
+    );
 
     if (fseek(pre_read, 0, SEEK_END) != 0) {
         Log(
@@ -200,124 +210,114 @@ void read_text(FILE *pre_read, FILE *post_read){
     fclose(post_read);
     post_read = NULL;
 
+    Log(
+        LOG_TYPE_INFO,
+        "File Read",
+        "File read successfully"
+    );
     return;
 }
 
 
 // ================================================================================================================================
 
-extern int ThreadCount;
-
-ThreadCount = 1;
-
 void* addition (void* arg) {
-    ThreadArgs* args = (ThreadArgs*)arg;
+
+    ThreadWork* work = (ThreadWork*)arg;
     
-    // รับ input จาก thread
-    const int ThreadID = args->ThreadID;
+    char start_msg[128];
+    snprintf(start_msg, sizeof(start_msg), "Thread %d starting addition", work->thread_id);
+    Log(LOG_TYPE_DEBUG, "Addition", start_msg);
 
-    const int offset = ThreadID * MAX_DIGIT;
-    const int read_every = ThreadCount * MAX_DIGIT;
-
-    unsigned int carry = 0;             // The ทด
-    unsigned long long Num1;            // Number from 1.txt
-    unsigned long long Num2;            // Number from 2.txt
-
-    bool last_num1 = false, last_num2 = false;
-
-    /*
-        Find the file size
-    */
+    // Create separate file handles for each thread to avoid conflicts
+    FILE* local_file1 = fopen("1.txt", "r");
+    FILE* local_file2 = fopen("2.txt", "r");
     
-    while (last_num1 == false && last_num2 == false) {
-        if (last_num1 == false) {
-            if (filesize1 < MAX_DIGIT) {   // <-- If the file size is less than 18(max digit), read the whole file
-                rewind(InputFile_1); // Reset the file pointer to the beginning
-                Num1 = ffread(InputFile_1, filesize1);
-                filesize1 = 0;
-                last_num1 = true;
-            } else {                // <-- If the file size is greater than or equal to 18, read the last 18 bytes
-                filesize1 -= read_every;
-                if (fseek(InputFile_1, -offset-read_every, SEEK_END) != 0) {
-                    Log(LOG_TYPE_ERROR, "File Seek", "Error seeking InputFile_1 to last 18 bytes");
-                    fclose(InputFile_1);
-                    return NULL;
-                }
+    if (!local_file1 || !local_file2) {
+        Log(LOG_TYPE_ERROR, "Addition", "Failed to open local file handles");
+        if (local_file1) fclose(local_file1);
+        if (local_file2) fclose(local_file2);
+        return NULL;
+    }
 
-                /* <-- This is not needed, because we already seek to the end of the file
-                if (fseek(InputFile_1, filesize1, SEEK_SET) != 0) {
-                    Log("Error seeking cur");
-                    fclose(InputFile_1);
-                    return;
-                }
-                */
-                Num1 = ffread(InputFile_1, MAX_DIGIT);
-            }
-            //printf("Num 1 : %llu\n", Num1); // <-- Debug
-        }
-
-        if (last_num2 == false) {
-            if (filesize2 < MAX_DIGIT) {
-                rewind(InputFile_2);
-                Num2 = ffread(InputFile_2, filesize2);
-                filesize2 = 0;
-                last_num2 = true;
-            } else {
-                filesize2 -= read_every;
-                if (fseek(InputFile_2, -offset-read_every, SEEK_END) != 0) {
-                    Log(LOG_TYPE_ERROR, "File Seek", "Error seeking InputFile_2 to last 18 bytes");
-                    fclose(InputFile_2);
-                    return NULL;
-                }
-
-                /*
-                if (fseek(InputFile_2, filesize2, SEEK_SET) != 0) {
-                    Log("Error seeking cur");
-                    fclose(InputFile_2);
-                    return;
-                }
-                */
-                Num2 = ffread(InputFile_2, MAX_DIGIT);
-            }
-            //printf("Num 2 : %llu\n", Num2);
-        }
-
-        if (filesize1 == 0) {
-            fclose(InputFile_1);
-            InputFile_1 = NULL;
-        }
-        if (filesize2 == 0) {
-            fclose(InputFile_2);
-            InputFile_2 = NULL;
-        }
-
-
-
-
-        // +++++++++++++++++++++++++ // บวกตัวเลขทั้งสอง + carry
-        unsigned long long result;
-        result = Num1 + Num2 + carry;
-        carry = 0;
-        //printf("sum of char: %llu\n\n", result); // <-- Debug
+    unsigned int carry = work->carry_in;
+    unsigned long long current_pos1 = work->start_pos1;
+    unsigned long long current_pos2 = work->start_pos2;
+    
+    // Buffer to store results from this thread
+    char* result_buffer = malloc(((work->end_pos1 - work->start_pos1) / MAX_DIGIT + 1) * 20);
+    if (!result_buffer) {
+        Log(LOG_TYPE_ERROR, "Addition", "Failed to allocate result buffer");
+        fclose(local_file1);
+        fclose(local_file2);
+        return NULL;
+    }
+    
+    int buffer_offset = 0;
+    
+    // Process assigned work chunk
+    while (current_pos1 < work->end_pos1 && current_pos2 < work->end_pos2) {
+        unsigned long long Num1 = 0, Num2 = 0;
         
-        // +++++++++++++++++++++++++ // ถ้า result มากกว่าหรือเท่ากับ 1000000000000000000 ให้ลบ 1000000000000000000 และเพิ่ม carry เป็น 1
+        // Read from file 1
+        if (current_pos1 < work->end_pos1) {
+            int read_size = (work->end_pos1 - current_pos1 < MAX_DIGIT) ? 
+                           (work->end_pos1 - current_pos1) : MAX_DIGIT;
+            
+            pthread_mutex_lock(&file_mutex);
+            fseek(local_file1, current_pos1, SEEK_SET);
+            Num1 = ffread(local_file1, read_size);
+            pthread_mutex_unlock(&file_mutex);
+            
+            current_pos1 += read_size;
+        }
+        
+        // Read from file 2
+        if (current_pos2 < work->end_pos2) {
+            int read_size = (work->end_pos2 - current_pos2 < MAX_DIGIT) ? 
+                           (work->end_pos2 - current_pos2) : MAX_DIGIT;
+            
+            pthread_mutex_lock(&file_mutex);
+            fseek(local_file2, current_pos2, SEEK_SET);
+            Num2 = ffread(local_file2, read_size);
+            pthread_mutex_unlock(&file_mutex);
+            
+            current_pos2 += read_size;
+        }
+        
+        // Perform addition
+        unsigned long long result = Num1 + Num2 + carry;
+        carry = 0;
+        
+        // Handle overflow
         unsigned long long max_sum = 1000000000000000000;
         if (result >= max_sum) {
             result -= max_sum;
             carry = 1;
         }
-
-        if (DEBUG_MODE) {
-            printf("sum of char without carry: %llu\n", result); // <-- Debug
-        }
-
-
-        // +++++++++++++++++++++++++ // เขียนผลลัพธ์ลงไฟล์
-        fprintf(OutputFile, "%llu", result);
-        Num1 = 0;
-        Num2 = 0;
-        //printf("File truncated successfully.\n\n");
+        
+        // Store result in buffer
+        int written = snprintf(result_buffer + buffer_offset, 20, "%llu", result);
+        buffer_offset += written;
     }
+    
+    work->carry_out = carry;
+    
+    // Write results to output file (thread-safe)
+    pthread_mutex_lock(&output_mutex);
+    fprintf(OutputFile, "%s", result_buffer);
+    fflush(OutputFile);
+    pthread_mutex_unlock(&output_mutex);
+    
+    free(result_buffer);
+    fclose(local_file1);
+    fclose(local_file2);
+
+    char finish_msg[64];
+    snprintf(finish_msg, sizeof(finish_msg), "Thread %d finished addition", work->thread_id);
+    Log(LOG_TYPE_DEBUG, "Addition", finish_msg);
+    
+    return NULL;
 }
 
 
@@ -375,6 +375,33 @@ int main(int argc, char *argv[]) {
 
     // -------------------------------------------------------------------------------------------
 
+    // Get number of CPU cores for optimal thread count
+    #ifdef _WIN32
+        SYSTEM_INFO sysinfo;
+        GetSystemInfo(&sysinfo);
+        ThreadCount = sysinfo.dwNumberOfProcessors;
+    #else
+        ThreadCount = sysconf(_SC_NPROCESSORS_ONLN);
+    #endif
+    
+    // For small files, use fewer threads to avoid overhead
+    unsigned long long max_filesize = (filesize1 > filesize2) ? filesize1 : filesize2;
+    if (max_filesize < 100) {
+        ThreadCount = 1;  // Use single thread for very small files
+    } else if (max_filesize < 1000) {
+        ThreadCount = (ThreadCount > 2) ? 2 : ThreadCount;  // Limit to 2 threads for small files
+    } else {
+        // Limit to reasonable number and ensure at least 1
+        if (ThreadCount > 8) ThreadCount = 8;
+    }
+    
+    if (ThreadCount < 1) ThreadCount = 1;
+    
+    char thread_msg[128];
+    snprintf(thread_msg, sizeof(thread_msg), "Using %d threads for files of size %llu and %llu", 
+             ThreadCount, filesize1, filesize2);
+    Log(LOG_TYPE_INFO, "Threading", thread_msg);
+
     InputFile_1 = fopen("1.txt", "r+");
     InputFile_2 = fopen("2.txt", "r+");
     OutputFile = fopen("unread-answer.txt", "w+");
@@ -391,10 +418,6 @@ int main(int argc, char *argv[]) {
         Log(LOG_TYPE_ERROR, "File Open", "Error opening unread-answer.txt");
         exit(1);
     }
-
-    // ใส่ input thread เข้าไปใน thread
-    ThreadArgs* args = malloc(sizeof(ThreadArgs));
-
     
     // Move the cursor to end of files
     if (fseek(InputFile_1, 0, SEEK_END) != 0) {
@@ -434,22 +457,45 @@ int main(int argc, char *argv[]) {
 
     unsigned long start = mills();  // Start time measurement
 
-    Create_Thread(args);
+    Create_Thread(NULL);
 
+    Log(LOG_TYPE_DEBUG, "Main", "Threads completed, now processing output");
+
+    // Close OutputFile first and reopen in read mode
+    fclose(OutputFile);
+    OutputFile = NULL;
+    
+    Log(LOG_TYPE_DEBUG, "Main", "Opening files for read_text");
+    
+    FILE* unread_answer = fopen("unread-answer.txt", "r");
     FILE* answer = fopen("answer.txt", "w");
 
+    if (!unread_answer) {
+        Log(LOG_TYPE_ERROR, "File Open", "Error opening unread-answer.txt for reading");
+        return 1;
+    }
+    
     if (!answer) {
         Log(LOG_TYPE_ERROR, "File Open", "Error opening answer.txt");
+        if (unread_answer) fclose(unread_answer);
         return 1;
     }
 
-    read_text(OutputFile, answer);
+    Log(LOG_TYPE_DEBUG, "Main", "About to call read_text");
+    read_text(unread_answer, answer);
 
     unsigned long end = mills(); // End time measurement
 
-    char perf_msg[64];
-    snprintf(perf_msg, sizeof(perf_msg), "Elapsed time: %lu ms", end - start);
+    char perf_msg[128];
+    snprintf(perf_msg, sizeof(perf_msg), "Elapsed time: %lu ms using %d threads", end - start, ThreadCount);
     Log(LOG_TYPE_INFO, "Performance", perf_msg);
+    
+    // Calculate throughput
+    unsigned long long total_data = filesize1 + filesize2;
+    double throughput = (double)total_data / (end - start) * 1000.0; // bytes per second
+    char throughput_msg[128];
+    snprintf(throughput_msg, sizeof(throughput_msg), "Throughput: %.2f bytes/second", throughput);
+    Log(LOG_TYPE_INFO, "Performance", throughput_msg);
     
     return 0;
 }

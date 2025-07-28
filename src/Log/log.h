@@ -2,6 +2,7 @@
 #define LOG_H
 
     #include <stdio.h>
+    #include <stdlib.h>
 
     /**
      * Log type use to define the output of log
