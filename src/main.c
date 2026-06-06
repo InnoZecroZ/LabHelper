@@ -10,6 +10,7 @@
 #include "Log/log.h"
 #include "Timer/timer.h"
 #include "CopyFile/copyfile.h"
+#include "NumberGen/gen.h"
 
 #ifdef _WIN32
     #include <io.h>
@@ -472,6 +473,10 @@ int main(int argc, char *argv[]) {
 
     // -------------------------------------------------------------------------------------------
 
+    unsigned long long digits = 1000000ULL;
+
+    pretest_random_number("1.txt", digits);
+    pretest_random_number("2.txt", digits);
 
     FILE *file1 = fopen("1.txt", "r+");
     FILE *file2 = fopen("2.txt", "r+");
