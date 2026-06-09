@@ -83,7 +83,7 @@ unsigned long long ffread(FILE *file, int buffersize){
 /**
  * 
  */
-void read_text(FILE *pre_read, FILE *post_read){
+void correction_swap_sector_of_text(FILE *pre_read, FILE *post_read){
 
     if (fseek(pre_read, 0, SEEK_END) != 0) {
         Log(
@@ -96,6 +96,7 @@ void read_text(FILE *pre_read, FILE *post_read){
         return;
     }
 
+    // Read file size from cursor
     unsigned long long filesize = ftell(pre_read);
 
     if (filesize <= 0) {
@@ -114,9 +115,11 @@ void read_text(FILE *pre_read, FILE *post_read){
 
     rewind(pre_read);
 
-    int offset = count % MAX_DIGIT * - 1;
+    // File size is a (filesize / MAX_DIGIT) but using remain to * (-1)
 
-    //printf("Offset: %d\n", offset);
+    int remaining_offset = (count % MAX_DIGIT);
+
+    //printf("Offset: %d\n", remaining_offset);
 
     /*
     int temp = floor(count / 18);
@@ -125,20 +128,20 @@ void read_text(FILE *pre_read, FILE *post_read){
     */  
 
     if ((count - 1) % MAX_DIGIT != 0) {
-        //printf("\nOffset: %d\n", offset);
+        //printf("\nOffset: %d\n", remaining_offset);
 
-        if (fseek(pre_read, offset, SEEK_END) != 0) {
+        if (fseek(pre_read, -remaining_offset, SEEK_END) != 0) {
             Log(
                 LOG_TYPE_ERROR,
                 "File Read Error",
-                "Error seeking to offset in file"
+                "Error seeking to remaining_offset in file"
             );
 
             fclose(pre_read);
             return;
         }
 
-        const int buffersize = -offset;
+        const int buffersize = remaining_offset;
         char raw[buffersize];
         char str[buffersize + 1];
         size_t bytesRead;
@@ -156,7 +159,7 @@ void read_text(FILE *pre_read, FILE *post_read){
     rewind(pre_read);
 
     //printf("filesize before offset : %llu\n", filesize);
-    filesize += offset; //offset is a negative number
+    filesize -= remaining_offset;
     //printf("filesize after offset : %llu\n", filesize);
 
     const int buffersize = MAX_DIGIT;
@@ -508,7 +511,7 @@ int main(int argc, char *argv[]) {
 
     addition(file1, file2, file3);
 
-    read_text(file3, answer);
+    correction_swap_sector_of_text(file3, answer);
 
     unsigned long end = mills(); // End time measurement
 
